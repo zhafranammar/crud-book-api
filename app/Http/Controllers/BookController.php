@@ -39,6 +39,20 @@ class BookController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        $existingBook = Book::where('title', $request->title)
+            ->where('year', $request->year)
+            ->where('publisher', $request->publisher)
+            ->where('author', $request->author)
+            ->first();
+
+        if ($existingBook) {
+            return response()->json([
+                'code' => 400,
+                'message' => 'The combination of title, year, publisher, and author has already been taken.',
+                'data' => null,
+            ], 400);
+        }
+
         $book = Book::create($request->all());
 
         return response()->json([
