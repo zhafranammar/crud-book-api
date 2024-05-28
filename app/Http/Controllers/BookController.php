@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Ramsey\Uuid\Type\Integer;
 
 class BookController extends Controller
@@ -31,13 +32,21 @@ class BookController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'year' => 'required|integer',
             'publisher' => 'required|string|max:255',
             'author' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'code' => 400,
+                'message' => 'Validation Error',
+                'error' => $validator->errors(),
+            ], 422);
+        }
 
         $existingBook = Book::where('title', $request->title)
             ->where('year', $request->year)
@@ -84,13 +93,21 @@ class BookController extends Controller
     {
         $book = Book::find($id);
         if ($book) {
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'title' => 'string|max:255',
                 'year' => 'integer',
                 'publisher' => 'string|max:255',
                 'author' => 'string|max:255',
                 'description' => 'string',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'code' => 400,
+                    'message' => 'Validation Error',
+                    'error' => $validator->errors(),
+                ], 422);
+            }
 
             try {
                 $book->update($request->all());
