@@ -57,4 +57,42 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    public function login(Request $request)
+    {
+        //set validation
+        $validator = Validator::make($request->all(), [
+            'email'     => 'required|email',
+            'password'  => 'required|min:8'
+        ]);
+
+        //if validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'code'  => 400,
+                'message' => 'Validation Error',
+                'error' => $validator->errors(),
+            ], 422);
+        }
+
+        $credentials = $request->only('email', 'password');
+
+        //if auth failed
+        if (!$token = auth()->guard('api')->attempt($credentials)) {
+            return response()->json([
+                'code' => 401,
+                'message' => 'Invalid email or password',
+                'data' => null
+            ], 401);
+        }
+
+        //if auth success
+        return response()->json([
+            'code' => 200,
+            'message' => 'Login Successfully',
+            'data' => [
+                'token' => $token
+            ]
+        ], 200);
+    }
 }
